@@ -20,6 +20,7 @@ import org.fao.sws.automation.dsl.Deployment;
 import org.fao.sws.automation.dsl.FileSystem;
 import org.fao.sws.model.configuration.Binder;
 import org.fao.sws.model.configuration.Locator;
+import org.fao.sws.model.configuration.Validator;
 
 
 @ApplicationScoped @Alternative @Priority(high)
@@ -27,13 +28,13 @@ import org.fao.sws.model.configuration.Locator;
 public class Producers {
 
 	@Produces @Deployment @SneakyThrows
-	FileSystem filesystem(InjectionPoint point, Binder binder) {
+	FileSystem filesystem(InjectionPoint point, Binder binder, Validator validator) {
 		
 		Deployment d = point.getAnnotated().getAnnotation(Deployment.class);
 		
 		Locator locator = d.config()==null || d.config().isEmpty() ? new Locator() : new Locator(d.config());
 		
-		return new FileSystem(locator, binder);
+		return new FileSystem(locator, binder,validator);
 			
 	}
 	
