@@ -4,6 +4,7 @@ import static org.fao.sws.model.configuration.Dsl.*;
 
 import javax.inject.Inject;
 
+import org.fao.sws.automation.Recipe;
 import org.fao.sws.automation.dsl.Database;
 import org.fao.sws.automation.dsl.Deployment;
 import org.fao.sws.model.Dataset;
@@ -13,7 +14,7 @@ import org.fao.sws.model.configuration.Configuration;
 import org.junit.After;
 import org.junit.Test;
 
-public class DomainGenerationTest extends AutomationTest {
+public class DomainGenerationTest extends Recipe {
 
 	@Inject @Deployment()
 	Database db;

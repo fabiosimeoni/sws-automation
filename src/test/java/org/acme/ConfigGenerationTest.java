@@ -4,6 +4,7 @@ import static org.fao.sws.model.configuration.Dsl.*;
 
 import javax.inject.Inject;
 
+import org.fao.sws.automation.Recipe;
 import org.fao.sws.automation.dsl.Deployment;
 import org.fao.sws.automation.dsl.FileSystem;
 import org.fao.sws.model.Dataset;
@@ -13,9 +14,9 @@ import org.fao.sws.model.Flag;
 import org.fao.sws.model.configuration.Configuration;
 import org.junit.Test;
 
-public class ConfigGenerationTest extends AutomationTest {
+public class ConfigGenerationTest extends Recipe {
 
-	@Inject @Deployment(config="src/main/resources")
+	@Inject @Deployment(config="src/test/resources")
 	FileSystem fs;
 	
 

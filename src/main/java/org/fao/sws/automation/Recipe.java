@@ -1,13 +1,10 @@
-package org.acme;
+package org.fao.sws.automation;
 
 import org.junit.runner.RunWith;
 
 import com.googlecode.jeeunit.JeeunitRunner;
 
 @RunWith(JeeunitRunner.class)
-public class AutomationTest {
-
-	//@TODO
-	
+public abstract class Recipe {
 
 }
