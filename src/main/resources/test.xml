@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<databaseConfiguration mailTo="john.doe@acme.org;joe.plumber@acme.org">
+    <dimensions/>
+    <flags/>
+    <domain code="d" displayNameKey="d">
+        <dataSet code="ds1" defaultEmptyRowsVisible="false" sdmxCode="ds1">
+            <dimension refCode="a" sdmxCode="a">
+                <roots>
+                    <root code="130"/>
+                    <root code="120"/>
+                    <root code="110"/>
+                </roots>
+            </dimension>
+            <timeDimension refCode="b" sdmxCode="somecode">
+                <roots/>
+            </timeDimension>
+            <measurementUnitDimension refCode="c" sdmxCode="c">
+                <roots/>
+            </measurementUnitDimension>
+            <observation valueTableName="DS1.OBSERVATION" coordinatesTableName="DS1.OBSERVATION_COORDINATE" sessionObservationTableName="DS1.SESSION_OBSERVATION" metadataTableName="DS1.METADATA" metadataElementTableName="DS1.METADATA_ELEMENT" sessionMetadataTableName="DS1.SESSION_METADATA" sessionMetadataElementTableName="DS1.SESSION_METADATA_ELEMENT" validationTableName="DS1.VALIDATION" sessionValidationTableName="DS1.SESSION_VALIDATION" tagObservationTableName="DS1.TAG_OBSERVATION">
+                <dimension refCode="a" joinColumn="A"/>
+                <dimension refCode="b" joinColumn="B"/>
+                <dimension refCode="c" joinColumn="C"/>
+                <flag refCode="f" sdmxCode="f" joinColumn="F"/>
+            </observation>
+            <defaultPivoting>
+                <dimension refCode="a" ascending="true"/>
+                <dimension refCode="b" ascending="false"/>
+                <dimension refCode="c" ascending="true"/>
+            </defaultPivoting>
+        </dataSet>
+    </domain>
+</databaseConfiguration>
