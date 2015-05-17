@@ -1,6 +1,6 @@
-package org.fao.sws.automation.dsl;
+package org.fao.sws.automation;
 
-import static org.fao.sws.automation.dsl.Templates.*;
+import static org.fao.sws.automation.Templates.*;
 import static org.fao.sws.common.Constants.*;
 import static org.jooq.SQLDialect.*;
 import static org.jooq.impl.DSL.*;

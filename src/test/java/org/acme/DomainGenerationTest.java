@@ -4,8 +4,8 @@ import static org.fao.sws.model.configuration.Dsl.*;
 
 import javax.inject.Inject;
 
+import org.fao.sws.automation.Database;
 import org.fao.sws.automation.Recipe;
-import org.fao.sws.automation.dsl.Database;
 import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
 import org.fao.sws.model.Flag;

@@ -45,7 +45,7 @@ create table if not exists {{observation}} (
     observation_coordinates bigint not null, 
     version integer not null, 
     value numeric(30,6), 
-    {{#each flags}}{{joinColumn}} character varying(10),{{/each}} 
+    {{#each flags}}{{joinColumn}} character varying({{target.length}}),{{/each}} 
     created_on timestamp without time zone DEFAULT now() not null, 
     created_by integer not null, 
     replaced_on timestamp without time zone, 
@@ -130,7 +130,7 @@ create table if not exists {{session_observation}} (
      {{joinColumn}} integer not null,
     {{/each}} 
     observation bigint, 
-    {{#each flags}}{{joinColumn}} character varying(10),{{/each}}  
+    {{#each flags}}{{joinColumn}} character varying({{target.length}}),{{/each}}  
     version bigint, 
     value numeric(30,6), 
     synthetic boolean DEFAULT false not null, 

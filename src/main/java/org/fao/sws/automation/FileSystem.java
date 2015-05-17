@@ -1,4 +1,4 @@
-package org.fao.sws.automation.dsl;
+package org.fao.sws.automation;
 
 import static java.lang.System.*;
 import static java.nio.file.Files.*;

@@ -15,9 +15,9 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import org.fao.sws.automation.dsl.Database;
-import org.fao.sws.automation.dsl.Deployment;
-import org.fao.sws.automation.dsl.FileSystem;
+import org.fao.sws.automation.Database;
+import org.fao.sws.automation.Deployment;
+import org.fao.sws.automation.FileSystem;
 import org.fao.sws.model.configuration.Binder;
 import org.fao.sws.model.configuration.Locator;
 import org.fao.sws.model.configuration.Validator;
