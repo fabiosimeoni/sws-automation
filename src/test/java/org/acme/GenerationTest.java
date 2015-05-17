@@ -4,35 +4,40 @@ import static org.fao.sws.model.configuration.Dsl.*;
 
 import javax.inject.Inject;
 
+import org.fao.sws.automation.Database;
 import org.fao.sws.automation.Deployment;
 import org.fao.sws.automation.FileSystem;
 import org.fao.sws.automation.Recipe;
 import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
-import org.fao.sws.model.Domain;
 import org.fao.sws.model.Flag;
 import org.fao.sws.model.configuration.Configuration;
 import org.junit.Test;
 
-public class ConfigGenerationTest extends Recipe {
+public class GenerationTest extends Recipe {
 
 	@Inject @Deployment(config="src/test/resources")
 	FileSystem fs;
 	
-
+	@Inject
+	Database db;
+	
 	@Test
-	public void persist_fragment() {
+	public void store_config_fragment() {
 		
-		Configuration fragment = sws()
-				.contact("john.doe@acme.org")
-				.contact("joe.plumber@acme.org")
-				.with(aDomain());
-		
-		
-		fs.store(fragment,"test");
+		fs.store(aFragment(),"test");
 	}
 	
-	Domain aDomain() {
+	
+	@Test
+	public void store_db_fragment() {
+		
+		db.store(aFragment());
+
+		db.close();
+	}
+	
+	Configuration aFragment() {
 		
 		Dimension dim = dimension("a");
 		Dimension time = timeDimension("b");
@@ -53,8 +58,13 @@ public class ConfigGenerationTest extends Recipe {
 			);
 		
 		
-		return domain("d").with(ds1);
+		return sws()
+				.contact("john.doe@acme.org")
+				.contact("joe.plumber@acme.org")
+				.with(domain("d").with(ds1));
 		
 		
 	}
+	
+	
 }
