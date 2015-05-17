@@ -39,7 +39,7 @@ public class Producers {
 	}
 	
 	@Produces @Deployment @SneakyThrows
-	Database database(InjectionPoint point) {
+	Database database(InjectionPoint point, Validator validator) {
 		
 		
 		Deployment d = point.getAnnotated().getAnnotation(Deployment.class);
@@ -50,7 +50,7 @@ public class Producers {
 		
 		Connection conn =  DriverManager.getConnection(url,d.user(), d.pwd());
 		
-		return new Database(conn);
+		return new Database(conn,validator);
 	
 	}
 

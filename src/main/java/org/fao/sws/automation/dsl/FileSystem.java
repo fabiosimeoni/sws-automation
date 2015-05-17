@@ -1,10 +1,11 @@
 package org.fao.sws.automation.dsl;
 
+import static java.lang.System.*;
 import static java.nio.file.Files.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Path;
+import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -36,26 +37,68 @@ public class FileSystem {
 	@SneakyThrows
 	public void store(Configuration fragment, String name) {
 		
-		@Cleanup ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		
-		binder.bind(fragment,stream);
-		
-		String xml = new String(stream.toByteArray());
-		
-		name = name +".xml";
-
-		log.info("persisting {} @ {}:\n\n{}", name,locator.location(),xml);
-
-		if (!validator.validFragment(fragment))
-			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
-		
-		Path destination = locator.location().resolve(name);
+		Path destination = locator.location().resolve(name+".xml");
 		
 		createDirectories(destination.getParent());
 		
-		@Cleanup FileOutputStream fs = new FileOutputStream(destination.toFile()); 
+		storeConfig(fragment, destination);
+		
+		storeLabels(fragment, destination.getParent().resolve("Labels.properties"));
+		
+		
+	}
+
+	
+	@SneakyThrows
+	private void storeConfig(Configuration fragment, Path path) {
+		
+		log.info("persisting {} @ {}", path,locator.location());
+
+		binder.bind(fragment,err);
+		
+		if (!validator.validFragment(fragment))
+			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
+		
+		@Cleanup FileOutputStream fs = new FileOutputStream(path.toFile()); 
 		
 		binder.bind(fragment,fs);
 	}
-
+	
+	@SneakyThrows
+	private void storeLabels(Configuration fragment, Path path) {
+		
+		Properties props = new Properties();
+		
+		fragment.dimensions().forEach(d->{
+			
+			props.put(d.labelKey(),d.label());	
+			
+		});
+		
+		fragment.flags().forEach(f->{
+			
+			props.put(f.labelKey(),f.label());	
+			
+		});
+		
+		fragment.domains().forEach(d->{
+			
+			props.put(d.labelKey(),d.label());
+			
+			d.datasets().forEach(ds->{
+				
+				props.put(ds.labelKey(),ds.label());	
+				
+			});
+			
+		});
+		
+		log.info("persisting labels @ {}", locator.location());
+		
+		props.store(err,null);
+				
+		@Cleanup FileOutputStream fs = new FileOutputStream(path.toFile()); 
+		
+		props.store(fs,null);
+	}
 }

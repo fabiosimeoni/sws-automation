@@ -1,6 +1,6 @@
 package org.fao.sws.automation.dsl;
 
-import static java.lang.String.*;
+import static org.fao.sws.automation.dsl.Templates.*;
 import static org.fao.sws.common.Constants.*;
 import static org.jooq.SQLDialect.*;
 import static org.jooq.impl.DSL.*;
@@ -22,6 +22,7 @@ import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
 import org.fao.sws.model.Domain;
 import org.fao.sws.model.configuration.Configuration;
+import org.fao.sws.model.configuration.Validator;
 import org.jooq.DSLContext;
 
 @Slf4j
@@ -32,20 +33,29 @@ public class Database implements Closeable {
 	
 	private final DSLContext jooq;
 	
-	@Setter
-	private boolean clean = true;
+	private final Validator validator;
 	
-	public Database(@NonNull Connection conn) {
+	@Setter
+	private boolean clean = false;
+	
+	@Setter
+	private boolean dryrun = true;
+	
+	public Database(@NonNull Connection conn, Validator validator) {
 		
 		this.conn=conn;
+		this.validator=validator;
 		this.jooq = using(conn,POSTGRES);
 	}
 	
-	public void store(Configuration config) {
+	public void store(Configuration fragment) {
 		
-		config.dimensions().forEach($->add($));
+		if (!validator.validFragment(fragment))
+			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		config.domains().forEach($->add($));
+		fragment.dimensions().forEach($->add($));
+		
+		fragment.domains().forEach($->add($));
 	}
 
 	public void add(Dimension dim) {
@@ -60,71 +70,36 @@ public class Database implements Closeable {
 		
 		log.info("creating domain {}",domain.id());
 		
-		domain.datasets().forEach($->add($));
+		domain.datasets().forEach(this::add);
 	}
+	
 	
 	public void add(Dataset dataset) {
 		
 		log.info("creating schema for dataset {}",dataset.id());
 		
-		StringBuilder ddl = new StringBuilder();
+		String ddl = instantiate("dataset", 
+								 $("clean",clean) 
+								,$("schema",dataset.schema())
+								,$("observation",dataset.table())
+								,$("metadata",dataset.metadataTable())
+								,$("metadata_element",dataset.metadataElementTable())
+								,$("observation_coordinate",dataset.coordinatesTable())
+								,$("dimensions",dataset.dimensions().all())
+								,$("session_metadata",dataset.sessionMetadataTable())
+								,$("session_metadata_element",dataset.sessionMetadataElementTable())
+								,$("session_observation",dataset.sessionObservationTable())
+								,$("session_validation",dataset.sessionValidationTable())
+								,$("validation",dataset.validationTable())
+								,$("tag_observation",dataset.tagObservationTable())
+								,$("flags",dataset.flags().all())
+								);
 		
-		if (clean)
-			ddl.append(format("drop schema if exists %s cascade;",dataset.id()));
+		log.info("executing script: \n\n{}",ddl);
+  
 		
-		ddl.append("\n").append(format("create schema if not exists %s;",dataset.id()));
-		
-		ddl.append("\n").append(format("set search_path = %s;",dataset.id()));
-		
-		
-		ddl.append("\n").append("create table observation ("
-				+ "id bigserial not null"
-				+ ",observation_coordinates bigint not null"
-				+ ",version integer not null"
-				+ ",value numeric(30,6)"
-				+ ",flag_obs_status character(3)"
-				+ ",flag_method character(3)"
-				+ ",created_on timestamp without time zone default now() not null"
-				+ ",created_by integer not null"
-				+ ",replaced_on timestamp without time zone"
-				+ ",primary key (id))"
-				+ ";"); 
-		
-		ddl.append("\n").append("create table metadata ("
-				+ "id bigserial not null"
-				+ ",observation bigint not null"
-				+ ",metadata_type integer not null"
-				+ ",language integer not null"
-				+ ",copy_metadata bigint"
-				+ ",primary key (id))"
-				+ ";")
-				
-			.append("\n")
-				.append("create index on metadata using btree (observation);")
-			.append("\n")
-				.append("alter table only metadata add foreign key (metadata_type) references reference_data.metadata_type(id);")
-			.append("\n")
-				.append("alter table only metadata add foreign key (observation) references observation(id);")
-			;  
-		
-		
-//		ddl.append("\n").append("create table metadata_element ("
-//				+ "id bigserial not null"
-//				+ ",metadata integer not null"
-//				+ ",metadata_element_type integer"
-//				+ ",value character varying(500)"
-//				+ ",primary key (id))"
-//				+ ";")
-//				
-//			.append("\n")
-//				.append("create index on metadata_element using btree (metadata);")
-//			.append("\n")
-//				.append("alter table only metadata_element add foreign key (metadata_element_type) references reference_data.metadata_element_type(id)" )
-//			.append("\n")
-//				.append("alter table only metadata_element add foreign key (metadata) references metadata(id)")
-//			;   
-		 		
-		jooq.execute(ddl.toString());
+		if (!dryrun)
+			jooq.execute(ddl);
 		
 	}
 	

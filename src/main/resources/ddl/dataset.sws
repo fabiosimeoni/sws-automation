@@ -1,0 +1,292 @@
+
+{{#if clean}}
+drop schema if exists {{schema}} cascade;
+{{/if}}
+
+create schema if not exists {{schema}};
+
+
+-- metadata
+
+create table if not exists {{metadata}} ( 
+    id bigserial not null, 
+    observation bigint not null, 
+    metadata_type integer not null, 
+    language integer not null, 
+    copy_metadata bigint, 
+    primary key (id) 
+); 
+  
+create index on {{metadata}} USING btree (observation); 
+
+
+
+-- metadata element
+
+create table if not exists {{metadata_element}} ( 
+    id bigserial not null, 
+    metadata integer not null, 
+    metadata_element_type integer, 
+    value character varying(500), 
+    primary key (id) 
+); 
+ 
+create index on {{metadata_element}} USING btree (metadata);
+
+
+
+
+
+
+-- observations
+
+create table if not exists {{observation}} ( 
+    id bigserial not null, 
+    observation_coordinates bigint not null, 
+    version integer not null, 
+    value numeric(30,6), 
+    {{#each flags}}{{joinColumn}} character varying(10),{{/each}} 
+    created_on timestamp without time zone DEFAULT now() not null, 
+    created_by integer not null, 
+    replaced_on timestamp without time zone, 
+    primary key (id) 
+); 
+
+
+create index on {{observation}} USING btree (created_on);  
+create index on {{observation}} USING btree (created_by, replaced_on); 
+create index on {{observation}} USING btree (observation_coordinates); 
+create unique index on {{observation}} USING btree (version, observation_coordinates);  
+
+
+
+
+
+
+-- observation coordinates
+
+
+create table if not exists {{observation_coordinate}} ( 
+    id bigserial not null, 
+    {{#each dimensions}}{{joinColumn}} integer not null,{{/each}}
+    approved_observation bigint, 
+    primary key (id) 
+);
+
+{{#each dimensions}}
+create index on {{observation_coordinate}} USING btree ({{joinColumn}}); 
+{{/each}}
+create unique index on {{observation_coordinate}} USING btree ({{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}})
+create index on {{observation_coordinate}} USING btree (approved_observation); 
+ 
+ 
+ 
+ 
+ 
+ 
+-- session metadata
+
+create table if not exists {{session_metadata}} ( 
+    id bigserial not null, 
+    session_observation bigint not null, 
+    metadata_type integer not null, 
+    language integer not null, 
+    metadata bigint, 
+    primary key (id) 
+); 
+
+ 
+create index on {{session_metadata}} USING btree (session_observation); 
+
+
+
+
+
+
+-- session metadata element
+ 
+create table if not exists {{session_metadata_element}} ( 
+    id bigserial not null, 
+    session_metadata integer not null, 
+    metadata_element_type integer, 
+    value character varying(500), 
+    primary key (id) 
+); 
+
+
+create index on {{session_metadata_element}} USING btree (session_metadata);
+
+
+
+
+
+
+-- session observation
+ 
+create table if not exists {{session_observation}} ( 
+    id bigserial not null, 
+    session bigint, 
+    {{#each dimensions}}
+     {{joinColumn}} integer not null,
+    {{/each}} 
+    observation bigint, 
+    {{#each flags}}{{joinColumn}} character varying(10),{{/each}}  
+    version bigint, 
+    value numeric(30,6), 
+    synthetic boolean DEFAULT false not null, 
+    primary key (id) 
+) 
+with (autovacuum_enabled=true, autovacuum_vacuum_threshold=50, autovacuum_analyze_threshold=50, autovacuum_vacuum_scale_factor=0.02, autovacuum_analyze_scale_factor=0.01, autovacuum_vacuum_cost_delay=20, autovacuum_vacuum_cost_limit=200, autovacuum_freeze_min_age=50000000, autovacuum_freeze_max_age=200000000, autovacuum_freeze_table_age=150000000); 
+
+{{#each dimensions}}
+create index on {{session_observation}} USING btree ({{joinColumn}}); 
+{{/each}}
+create index on {{session_observation}} USING btree ({{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}})
+create index on {{session_observation}} USING btree (session, observation); 
+create unique index on {{session_observation}} USING btree (session,{{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}}); 
+
+
+
+
+
+-- session validation
+ 
+create table if not exists {{session_validation}} ( 
+    id bigserial not null, 
+    session_observation bigint not null, 
+    computation_execution bigint not null, 
+    severity integer not null, 
+    description character varying(1000) not null, 
+    from_session boolean DEFAULT false not null, 
+    cleared_on timestamp without time zone, 
+    cleared_by integer, 
+    CONSTRAINT session_validation_severity_check CHECK (((severity >= 1) AND (severity <= 5))), 
+    primary key (id) 
+); 
+
+
+create index on {{session_validation}} USING btree (cleared_by); 
+
+
+
+
+
+-- tag observation
+ 
+create table if not exists {{tag_observation}} ( 
+    tag bigint not null, 
+    observation bigint not null, 
+    primary key (observation, tag) 
+); 
+
+create index on {{tag_observation}} USING btree (tag); 
+create index on {{tag_observation}} USING btree (observation); 
+
+
+
+
+
+
+-- validation
+
+ 
+create table if not exists {{validation}} ( 
+    id bigserial not null, 
+    observation bigint not null, 
+    computation_execution bigint not null, 
+    severity integer not null, 
+    description character varying(1000) not null, 
+    cleared_on timestamp without time zone, 
+    cleared_by integer, 
+    CONSTRAINT validation_severity_check CHECK (((severity >= 1) AND (severity <= 5))), 
+    primary key (id) 
+);
+
+
+ 
+
+ 
+ 
+ 
+{{#each dimensions}}
+alter table only {{observation_coordinate}}
+    add foreign key ({{joinColumn}}) references {{target.table}}(id); 
+    
+alter table only {{session_observation}}
+    add foreign key ({{joinColumn}}) references {{target.table}}(id); 
+{{/each}}
+
+{{#each flags}} 
+alter table only {{observation}} 
+    add foreign key ({{joinColumn}}) references {{target.table}}(code); 
+{{/each}}
+
+{{#each flags}} 
+alter table only {{session_observation}} 
+    add foreign key ({{joinColumn}}) references {{target.table}}(code); 
+{{/each}}
+ 
+alter table only {{session_metadata}} 
+    add foreign key (language) references reference_data.language(id); 
+ 
+alter table only {{metadata_element}} 
+    add foreign key (metadata_element_type) references reference_data.metadata_element_type(id); 
+ 
+alter table only {{session_metadata_element}} 
+    add foreign key (metadata_element_type) references reference_data.metadata_element_type(id); 
+ 
+alter table only {{metadata_element}} 
+    add foreign key (metadata) references {{metadata}}(id); 
+ 
+alter table only {{metadata}} 
+    add foreign key (metadata_type) references reference_data.metadata_type(id); 
+ 
+alter table only {{session_metadata}} 
+    add foreign key (metadata_type) references reference_data.metadata_type(id); 
+ 
+alter table only {{observation}} 
+    add foreign key (observation_coordinates) references {{observation_coordinate}}(id); 
+ 
+alter table only {{metadata}}
+    add foreign key (observation) references {{observation}}(id); 
+ 
+alter table only {{session_observation}} 
+    add foreign key (observation) references {{observation}}(id); 
+ 
+alter table only {{session_metadata_element}} 
+    add foreign key (session_metadata) references {{session_metadata}}(id); 
+ 
+alter table only {{session_metadata}} 
+    add foreign key (session_observation) references {{session_observation}}(id); 
+ 
+alter table only {{session_observation}} 
+    add foreign key (session) references operational_data.session(id); 
+ 
+alter table only {{session_validation}} 
+    add foreign key (computation_execution) references operational_data.computation_execution(id); 
+ 
+alter table only {{session_validation}} 
+    add foreign key (session_observation) references {{session_observation}}(id); 
+ 
+alter table only {{session_validation}} 
+    add foreign key (cleared_by) references operational_data.user(id); 
+ 
+alter table only {{tag_observation}} 
+    add foreign key (observation) references {{observation}}(id); 
+ 
+alter table only {{tag_observation}} 
+    add foreign key (tag) references operational_data.tag(id); 
+ 
+alter table only {{observation}} 
+    add foreign key (created_by) references operational_data.user(id); 
+ 
+alter table only {{validation}} 
+    add foreign key (cleared_by) references operational_data.user(id); 
+ 
+alter table only {{validation}} 
+    add foreign key (computation_execution) references operational_data.computation_execution(id); 
+ 
+alter table only {{validation}} 
+    add foreign key (observation) references {{observation}}(id); 
+ 
+INSERT into reference_data.dataset (xml_name) values ({{schema}});

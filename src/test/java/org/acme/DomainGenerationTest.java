@@ -6,7 +6,6 @@ import javax.inject.Inject;
 
 import org.fao.sws.automation.Recipe;
 import org.fao.sws.automation.dsl.Database;
-import org.fao.sws.automation.dsl.Deployment;
 import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
 import org.fao.sws.model.Flag;
@@ -16,7 +15,7 @@ import org.junit.Test;
 
 public class DomainGenerationTest extends Recipe {
 
-	@Inject @Deployment()
+	@Inject
 	Database db;
 	
 
@@ -24,13 +23,16 @@ public class DomainGenerationTest extends Recipe {
 	public void create_dataset() {
 		
 		Dimension dim = dimension("test-dimension");
+		Dimension tdim = timeDimension("time-dimension");
+		Dimension mdim = measureDimension("measure-dimension");
 		Flag flag = flag("test-flag");
 	
 		Dataset dataset = dataset("test")
-								.with(dim.ref())
+								.with(dim.ref(),tdim.ref(),mdim.ref())
 								.with(flag.ref());
 		
 		Configuration config = sws()
+								.contact("john.doe@acme.org")
 								.with(dim)
 								.with(domain().with(dataset));
 		
