@@ -36,7 +36,17 @@ public class GenerationTest extends Recipe {
 		Dimension dim = dimension("test").length(5);
 		
 		db.clean(true);
-		db.store(dim);
+		db.define(dim);
+		
+	}
+	
+	@Test
+	public void create_measure_schema() {
+		
+		Dimension dim = measureDimension("element_test").length(5);
+		
+		db.clean(true);
+		db.define(dim);
 		
 	}
 	
@@ -46,14 +56,14 @@ public class GenerationTest extends Recipe {
 		Flag flag = flag("test").length(5);
 		
 		db.clean(true);
-		db.store(flag);
+		db.define(flag);
 		
 	}
 	
 	@Test
 	public void create_fragment_schema() {
 		
-		db.storeFragment(aFragment());
+		db.defineFragment(aFragment());
 
 		db.close();
 	}

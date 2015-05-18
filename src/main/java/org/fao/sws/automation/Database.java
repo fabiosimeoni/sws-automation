@@ -1,5 +1,6 @@
 package org.fao.sws.automation;
 
+import static java.util.Arrays.*;
 import static org.fao.sws.automation.Templates.*;
 import static org.fao.sws.common.Constants.*;
 import static org.jooq.SQLDialect.*;
@@ -7,6 +8,8 @@ import static org.jooq.impl.DSL.*;
 
 import java.io.Closeable;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
@@ -20,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
+import org.fao.sws.model.Dimension.Measure;
 import org.fao.sws.model.Domain;
 import org.fao.sws.model.Flag;
 import org.fao.sws.model.configuration.Configuration;
@@ -49,43 +53,48 @@ public class Database implements Closeable {
 		this.jooq = using(conn,POSTGRES);
 	}
 
-	public void store(Configuration configuration) {
+	public void define(Configuration configuration) {
 		
 		if (!validator.valid(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		$store(configuration);
+		$define(configuration);
 	}
 	
-	public void storeFragment(Configuration configuration) {
+	public void defineFragment(Configuration configuration) {
 		
 		if (!validator.validFragment(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		$store(configuration);
+		$define(configuration);
 	}
 	
-	void $store(Configuration configuration) {
+	void $define(Configuration configuration) {
 		
-		configuration.dimensions().forEach(this::store);
+		configuration.dimensions().forEach(this::define);
 		
-		configuration.flags().forEach(this::store);
+		configuration.flags().forEach(this::define);
 		
-		configuration.domains().forEach(this::store);
+		configuration.domains().forEach(this::define);
 	}
 
-	public void store(Dimension dim) {
+	public void define(Dimension dim) {
 		
 		log.info("storing dimension '{}'",dim.id());
 		
-		String ddl = instantiate("dimension", 
+		List<Object[]> model = new ArrayList<>(asList(
 				 $("clean",clean)
 				,$("table",dim.table())
 				,$("length",dim.length())
 				,$("hierarchyTable",dim.hierarchyTable())
 				,$("parent",dim.parent())
 				,$("child",dim.child())
-				);
+		));
+		
+		if (dim instanceof Measure)
+			model.add($("measure",true));
+		
+		String ddl = instantiate("dimension",model);
 
 		log.info("\n\n{}",ddl);
 		
@@ -95,7 +104,7 @@ public class Database implements Closeable {
 		
 	}
 	
-	public void store(Flag flag) {
+	public void define(Flag flag) {
 		
 		log.info("storing flag '{}'",flag.id());
 		
@@ -113,15 +122,15 @@ public class Database implements Closeable {
 		
 	}
 	
-	public void store(Domain domain) {
+	public void define(Domain domain) {
 		
 		log.info("storing domain '{}'",domain.id());
 		
-		domain.datasets().forEach(this::store);
+		domain.datasets().forEach(this::define);
 	}
 	
 	
-	public void store(Dataset dataset) {
+	public void define(Dataset dataset) {
 		
 		log.info("storing dataset '{}'",dataset.id());
 		

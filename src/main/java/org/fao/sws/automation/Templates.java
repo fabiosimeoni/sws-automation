@@ -1,8 +1,10 @@
 package org.fao.sws.automation;
 
 import static com.github.jknack.handlebars.Context.*;
+import static java.util.Arrays.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.SneakyThrows;
@@ -30,18 +32,24 @@ public class Templates {
 	@SneakyThrows
 	public String instantiate(String name, Object[] ... params) {
 		
-		Context ctx = newBuilder(modelOf(params))
+		return instantiate(name, asList(params));
+	}
+	
+	@SneakyThrows
+	public String instantiate(String name, List<Object[]> params) {
+		
+		Context model = newBuilder(modelOf(params))
 						.resolver(MapValueResolver.INSTANCE,
 								  FieldValueResolver.INSTANCE)
 						.build();
 		
-		return bars.compile(name).apply(ctx);
+		return bars.compile(name).apply(model);
 	}
 	
 	
 	//////////////////////////////////////////// helper(s)
 	
-	private Map<String,Object> modelOf(Object[] ... params) {
+	private Map<String,Object> modelOf(List<Object[]> params) {
 		
 		Map<String,Object> model = new HashMap<>();
 		

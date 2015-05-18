@@ -4,10 +4,10 @@ drop table if exists {{table}};
 {{/if}}
 
 create table if not exists {{table}} (
-  id serial NOT NULL,
-  code character varying({{length}}) UNIQUE NOT NULL,
-  selection_only boolean NOT NULL DEFAULT false,
-  description_en character varying(500) NOT NULL,
+  id serial not null primary key,
+  code character varying({{length}}) unique not null,
+  selection_only boolean not null default false,
+  description_en character varying(500) not null,
   description_fr character varying(500),
   description_es character varying(500),
   description_zh character varying(500),
@@ -16,8 +16,10 @@ create table if not exists {{table}} (
   start_date date,
   end_date date,
   sort integer,
-  type character varying(50),
-  primary key (id) 
+  type character varying(50)
+  {{#if measure}}
+  , unit_of_measure integer NOT NULL references REFERENCE_DATA.UNIT_OF_MEASURE(id)
+  {{/if}}
 );
 
 
