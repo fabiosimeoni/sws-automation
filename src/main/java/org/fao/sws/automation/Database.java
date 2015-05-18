@@ -53,32 +53,32 @@ public class Database implements Closeable {
 		this.jooq = using(conn,POSTGRES);
 	}
 
-	public void define(Configuration configuration) {
+	public void createSchemaForEntire(Configuration configuration) {
 		
 		if (!validator.valid(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		$define(configuration);
+		create(configuration);
 	}
 	
-	public void defineFragment(Configuration configuration) {
+	public void createSchemaFor(Configuration configuration) {
 		
 		if (!validator.validFragment(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		$define(configuration);
+		create(configuration);
 	}
 	
-	void $define(Configuration configuration) {
+	void create(Configuration configuration) {
 		
-		configuration.dimensions().forEach(this::define);
+		configuration.dimensions().forEach(this::createSchemaFor);
 		
-		configuration.flags().forEach(this::define);
+		configuration.flags().forEach(this::createSchemaFor);
 		
-		configuration.domains().forEach(this::define);
+		configuration.domains().forEach(this::createSchemasFor);
 	}
 
-	public void define(Dimension dim) {
+	public void createSchemaFor(Dimension dim) {
 		
 		log.info("storing dimension '{}'",dim.id());
 		
@@ -104,15 +104,15 @@ public class Database implements Closeable {
 		
 	}
 	
-	public void define(Flag flag) {
+	public void createSchemaFor(Flag flag) {
 		
 		log.info("storing flag '{}'",flag.id());
 		
 		String ddl = instantiate("flag", 
-				 $("clean",clean)
-				,$("table",flag.table())
-				,$("length",flag.length())
-				);
+									 $("clean",clean)
+									,$("table",flag.table())
+									,$("length",flag.length())
+									);
 
 		log.info("\n\n{}",ddl);
 		
@@ -122,15 +122,15 @@ public class Database implements Closeable {
 		
 	}
 	
-	public void define(Domain domain) {
+	public void createSchemasFor(Domain domain) {
 		
 		log.info("storing domain '{}'",domain.id());
 		
-		domain.datasets().forEach(this::define);
+		domain.datasets().forEach(this::createSchemaFor);
 	}
 	
 	
-	public void define(Dataset dataset) {
+	public void createSchemaFor(Dataset dataset) {
 		
 		log.info("storing dataset '{}'",dataset.id());
 		

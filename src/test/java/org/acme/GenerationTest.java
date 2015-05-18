@@ -26,17 +26,24 @@ public class GenerationTest extends Recipe {
 	@Test
 	public void store_config_fragment() {
 		
-		fs.store(aFragment(),"test");
+		fs.store(aConfigFragment(),"test");
 	}
 	
 
+	@Test
+	public void create_fragment_schema() {
+		
+		db.clean(true);
+		db.createSchemaFor(aConfigFragment());
+	}
+	
 	@Test
 	public void create_dim_schema() {
 		
 		Dimension dim = dimension("test").length(5);
 		
 		db.clean(true);
-		db.define(dim);
+		db.createSchemaFor(dim);
 		
 	}
 	
@@ -46,7 +53,7 @@ public class GenerationTest extends Recipe {
 		Dimension dim = measureDimension("element_test").length(5);
 		
 		db.clean(true);
-		db.define(dim);
+		db.createSchemaFor(dim);
 		
 	}
 	
@@ -56,16 +63,8 @@ public class GenerationTest extends Recipe {
 		Flag flag = flag("test").length(5);
 		
 		db.clean(true);
-		db.define(flag);
+		db.createSchemaFor(flag);
 		
-	}
-	
-	@Test
-	public void create_fragment_schema() {
-		
-		db.defineFragment(aFragment());
-
-		db.close();
 	}
 	
 	
@@ -78,8 +77,8 @@ public class GenerationTest extends Recipe {
 		db.close();
 	}
 
-	Configuration aFragment() {
-			
+	Configuration aConfigFragment() {
+		
 			Dimension dim = dimension("a");
 			Dimension time = timeDimension("b");
 			Dimension measure = measureDimension("c");
@@ -100,11 +99,11 @@ public class GenerationTest extends Recipe {
 			
 			
 			return sws()
-					.with(dim)
+					.with(dim,time,measure)
+					.with(flag)
 					.contact("john.doe@acme.org")
 					.contact("joe.plumber@acme.org")
 					.with(domain("d").with(ds1));
-			
 			
 		}
 	

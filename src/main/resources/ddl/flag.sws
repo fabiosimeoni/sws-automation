@@ -1,6 +1,6 @@
 
 {{#if clean}}
-drop table if exists {{table}};
+drop table if exists {{table}} cascade;
 {{/if}}
 
 create table if not exists {{table}} (

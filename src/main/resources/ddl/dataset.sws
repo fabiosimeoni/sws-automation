@@ -1,6 +1,7 @@
 
 {{#if clean}}
 drop schema if exists {{schema}} cascade;
+delete from reference_data.dataset where xml_name='{{schema}}';
 {{/if}}
 
 create schema if not exists {{schema}};
@@ -60,23 +61,19 @@ create unique index on {{observation}} USING btree (version, observation_coordin
 
 
 
-
-
-
 -- observation coordinates
 
 
 create table if not exists {{observation_coordinate}} ( 
-    id bigserial not null, 
+    id bigserial not null primary key, 
     {{#each dimensions}}{{joinColumn}} integer not null,{{/each}}
-    approved_observation bigint, 
-    primary key (id) 
+    approved_observation bigint
 );
 
 {{#each dimensions}}
 create index on {{observation_coordinate}} USING btree ({{joinColumn}}); 
 {{/each}}
-create unique index on {{observation_coordinate}} USING btree ({{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}})
+create unique index on {{observation_coordinate}} USING btree ({{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}});
 create index on {{observation_coordinate}} USING btree (approved_observation); 
  
  
@@ -87,30 +84,24 @@ create index on {{observation_coordinate}} USING btree (approved_observation);
 -- session metadata
 
 create table if not exists {{session_metadata}} ( 
-    id bigserial not null, 
+    id bigserial not null primary key, 
     session_observation bigint not null, 
     metadata_type integer not null, 
     language integer not null, 
-    metadata bigint, 
-    primary key (id) 
+    metadata bigint 
 ); 
 
  
 create index on {{session_metadata}} USING btree (session_observation); 
 
 
-
-
-
-
 -- session metadata element
  
 create table if not exists {{session_metadata_element}} ( 
-    id bigserial not null, 
+    id bigserial not null primary key, 
     session_metadata integer not null, 
     metadata_element_type integer, 
-    value character varying(500), 
-    primary key (id) 
+    value character varying(500)
 ); 
 
 
@@ -118,13 +109,10 @@ create index on {{session_metadata_element}} USING btree (session_metadata);
 
 
 
-
-
-
 -- session observation
  
 create table if not exists {{session_observation}} ( 
-    id bigserial not null, 
+    id bigserial not null primary key, 
     session bigint, 
     {{#each dimensions}}
      {{joinColumn}} integer not null,
@@ -133,15 +121,14 @@ create table if not exists {{session_observation}} (
     {{#each flags}}{{joinColumn}} character varying({{target.length}}),{{/each}}  
     version bigint, 
     value numeric(30,6), 
-    synthetic boolean DEFAULT false not null, 
-    primary key (id) 
+    synthetic boolean DEFAULT false not null
 ) 
 with (autovacuum_enabled=true, autovacuum_vacuum_threshold=50, autovacuum_analyze_threshold=50, autovacuum_vacuum_scale_factor=0.02, autovacuum_analyze_scale_factor=0.01, autovacuum_vacuum_cost_delay=20, autovacuum_vacuum_cost_limit=200, autovacuum_freeze_min_age=50000000, autovacuum_freeze_max_age=200000000, autovacuum_freeze_table_age=150000000); 
 
 {{#each dimensions}}
 create index on {{session_observation}} USING btree ({{joinColumn}}); 
 {{/each}}
-create index on {{session_observation}} USING btree ({{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}})
+create index on {{session_observation}} USING btree ({{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}});
 create index on {{session_observation}} USING btree (session, observation); 
 create unique index on {{session_observation}} USING btree (session,{{#each dimensions}}{{#if @index}},{{/if}}{{joinColumn}}{{/each}}); 
 
@@ -152,7 +139,7 @@ create unique index on {{session_observation}} USING btree (session,{{#each dime
 -- session validation
  
 create table if not exists {{session_validation}} ( 
-    id bigserial not null, 
+    id bigserial not null primary key, 
     session_observation bigint not null, 
     computation_execution bigint not null, 
     severity integer not null, 
@@ -160,8 +147,7 @@ create table if not exists {{session_validation}} (
     from_session boolean DEFAULT false not null, 
     cleared_on timestamp without time zone, 
     cleared_by integer, 
-    CONSTRAINT session_validation_severity_check CHECK (((severity >= 1) AND (severity <= 5))), 
-    primary key (id) 
+    CONSTRAINT session_validation_severity_check CHECK (((severity >= 1) AND (severity <= 5)))
 ); 
 
 
@@ -191,15 +177,14 @@ create index on {{tag_observation}} USING btree (observation);
 
  
 create table if not exists {{validation}} ( 
-    id bigserial not null, 
+    id bigserial not null primary key, 
     observation bigint not null, 
     computation_execution bigint not null, 
     severity integer not null, 
     description character varying(1000) not null, 
     cleared_on timestamp without time zone, 
     cleared_by integer, 
-    CONSTRAINT validation_severity_check CHECK (((severity >= 1) AND (severity <= 5))), 
-    primary key (id) 
+    CONSTRAINT validation_severity_check CHECK (((severity >= 1) AND (severity <= 5)))
 );
 
 
@@ -289,4 +274,6 @@ alter table only {{validation}}
 alter table only {{validation}} 
     add foreign key (observation) references {{observation}}(id); 
  
-INSERT into reference_data.dataset (xml_name) values ({{schema}});
+insert into reference_data.dataset (xml_name) 
+            SELECT '{{schema}}' 
+            where not exists (select 1 from reference_data.dataset where xml_name='{{schema}}');
