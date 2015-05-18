@@ -20,7 +20,7 @@ public class GenerationTest extends Recipe {
 	@Inject @Deployment(config="src/test/resources")
 	FileSystem fs;
 	
-	@Inject @Deployment(user="fabio",pwd="fabio")
+	@Inject
 	Database db;
 	
 	@Test
@@ -31,39 +31,42 @@ public class GenerationTest extends Recipe {
 	
 
 	@Test
-	public void store_db_dimension() {
+	public void create_dim_schema() {
 		
 		Dimension dim = dimension("test").length(5);
 		
-		//db.clean(true);
-		//db.dryrun(true);
+		db.clean(true);
 		db.store(dim);
 		
 	}
 	
 	@Test
-	public void store_db_fragment() {
+	public void create_flag_schema() {
+		
+		Flag flag = flag("test").length(5);
+		
+		db.clean(true);
+		db.store(flag);
+		
+	}
+	
+	@Test
+	public void create_fragment_schema() {
 		
 		db.storeFragment(aFragment());
 
 		db.close();
 	}
 	
-	@Test
-	public void store_dimension() {
-		
-		db.storeFragment(aFragment());
-
-	}
 	
+	//////////////////////////////////////////////////////////////////
+	
+
 	@After
 	public void shutdown() {
 	
 		db.close();
 	}
-	
-	//////////////////////////////////////////////////////////////////
-	
 
 	Configuration aFragment() {
 			

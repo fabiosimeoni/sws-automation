@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
 import org.fao.sws.model.Domain;
+import org.fao.sws.model.Flag;
 import org.fao.sws.model.configuration.Configuration;
 import org.fao.sws.model.configuration.Validator;
 import org.jooq.DSLContext;
@@ -68,6 +69,8 @@ public class Database implements Closeable {
 		
 		configuration.dimensions().forEach(this::store);
 		
+		configuration.flags().forEach(this::store);
+		
 		configuration.domains().forEach(this::store);
 	}
 
@@ -82,6 +85,24 @@ public class Database implements Closeable {
 				,$("hierarchyTable",dim.hierarchyTable())
 				,$("parent",dim.parent())
 				,$("child",dim.child())
+				);
+
+		log.info("\n\n{}",ddl);
+		
+		
+		if (!dryrun)
+			jooq.execute(ddl);
+		
+	}
+	
+	public void store(Flag flag) {
+		
+		log.info("storing flag '{}'",flag.id());
+		
+		String ddl = instantiate("flag", 
+				 $("clean",clean)
+				,$("table",flag.table())
+				,$("length",flag.length())
 				);
 
 		log.info("\n\n{}",ddl);
