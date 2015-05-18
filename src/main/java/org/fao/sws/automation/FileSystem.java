@@ -64,7 +64,7 @@ public class FileSystem {
 		if (!validator.validFragment(fragment))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		@Cleanup OutputStream out = dryrun? new FileOutputStream(path.toFile()) : err; 
+		@Cleanup OutputStream out = dryrun? err : new FileOutputStream(path.toFile()); 
 		
 		binder.bind(fragment,out);
 	}
@@ -102,7 +102,7 @@ public class FileSystem {
 		
 		props.store(err,null);
 				
-		@Cleanup OutputStream out = dryrun? new FileOutputStream(path.toFile()) : err; 
+		@Cleanup OutputStream out = dryrun? err : new FileOutputStream(path.toFile());
 		
 		props.store(out,null);
 	}
