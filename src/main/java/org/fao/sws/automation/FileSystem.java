@@ -4,6 +4,7 @@ import static java.lang.System.*;
 import static java.nio.file.Files.*;
 
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Properties;
 
@@ -12,6 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import lombok.Cleanup;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +34,9 @@ public class FileSystem {
 	
 	@NonNull
 	Validator validator;
+	
+	@Setter
+	boolean dryrun = false;
 	
 	
 	@SneakyThrows
@@ -59,9 +64,9 @@ public class FileSystem {
 		if (!validator.validFragment(fragment))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		@Cleanup FileOutputStream fs = new FileOutputStream(path.toFile()); 
+		@Cleanup OutputStream out = dryrun? new FileOutputStream(path.toFile()) : err; 
 		
-		binder.bind(fragment,fs);
+		binder.bind(fragment,out);
 	}
 	
 	@SneakyThrows
@@ -97,8 +102,8 @@ public class FileSystem {
 		
 		props.store(err,null);
 				
-		@Cleanup FileOutputStream fs = new FileOutputStream(path.toFile()); 
+		@Cleanup OutputStream out = dryrun? new FileOutputStream(path.toFile()) : err; 
 		
-		props.store(fs,null);
+		props.store(out,null);
 	}
 }
