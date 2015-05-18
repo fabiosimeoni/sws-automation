@@ -39,7 +39,7 @@ public class Database implements Closeable {
 	private boolean clean = false;
 	
 	@Setter
-	private boolean dryrun = true;
+	private boolean dryrun = false;
 	
 	public Database(@NonNull Connection conn, Validator validator) {
 		
@@ -47,36 +47,62 @@ public class Database implements Closeable {
 		this.validator=validator;
 		this.jooq = using(conn,POSTGRES);
 	}
-	
-	public void store(Configuration fragment) {
+
+	public void store(Configuration configuration) {
 		
-		if (!validator.validFragment(fragment))
+		if (!validator.valid(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		fragment.dimensions().forEach($->add($));
+		$store(configuration);
+	}
+	
+	public void storeFragment(Configuration configuration) {
 		
-		fragment.domains().forEach($->add($));
+		if (!validator.validFragment(configuration))
+			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
+		
+		$store(configuration);
+	}
+	
+	void $store(Configuration configuration) {
+		
+		configuration.dimensions().forEach(this::store);
+		
+		configuration.domains().forEach(this::store);
 	}
 
-	public void add(Dimension dim) {
+	public void store(Dimension dim) {
 		
-		log.info("creating dimension {}",dim.id());
+		log.info("storing dimension '{}'",dim.id());
 		
-		//TODO
+		String ddl = instantiate("dimension", 
+				 $("clean",clean)
+				,$("table",dim.table())
+				,$("length",dim.length())
+				,$("hierarchyTable",dim.hierarchyTable())
+				,$("parent",dim.parent())
+				,$("child",dim.child())
+				);
+
+		log.info("\n\n{}",ddl);
+		
+		
+		if (!dryrun)
+			jooq.execute(ddl);
 		
 	}
 	
-	public void add(Domain domain) {
+	public void store(Domain domain) {
 		
-		log.info("creating domain {}",domain.id());
+		log.info("storing domain '{}'",domain.id());
 		
-		domain.datasets().forEach(this::add);
+		domain.datasets().forEach(this::store);
 	}
 	
 	
-	public void add(Dataset dataset) {
+	public void store(Dataset dataset) {
 		
-		log.info("creating schema for dataset {}",dataset.id());
+		log.info("storing dataset '{}'",dataset.id());
 		
 		String ddl = instantiate("dataset", 
 								 $("clean",clean) 
@@ -95,7 +121,7 @@ public class Database implements Closeable {
 								,$("flags",dataset.flags().all())
 								);
 		
-		log.info("executing script: \n\n{}",ddl);
+		log.info("\n\n{}",ddl);
   
 		
 		if (!dryrun)

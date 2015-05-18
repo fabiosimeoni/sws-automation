@@ -1,0 +1,39 @@
+
+{{#if clean}}
+drop table if exists {{table}};
+{{/if}}
+
+create table if not exists {{table}} (
+  id serial NOT NULL,
+  code character varying({{length}}) UNIQUE NOT NULL,
+  selection_only boolean NOT NULL DEFAULT false,
+  description_en character varying(500) NOT NULL,
+  description_fr character varying(500),
+  description_es character varying(500),
+  description_zh character varying(500),
+  description_ru character varying(500),
+  description_ar character varying(500),
+  start_date date,
+  end_date date,
+  sort integer,
+  type character varying(50),
+  primary key (id) 
+);
+
+
+--  hierarchy table
+
+{{#if hierarchyTable}}{{#if clean}}drop table if exists {{hierarchyTable}};{{/if}}
+
+create table if not exists {{hierarchyTable}} (
+
+  {{child}} integer NOT NULL references {{table}}(id),
+  {{parent}} integer NOT NULL references {{table}}(id),
+  primary key ({{parent}},{{child}})
+
+);
+
+create index on {{hierarchyTable}} using btree ({{child}});
+create index on {{hierarchyTable}} using btree ({{parent}});
+
+{{/if}}

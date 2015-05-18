@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <databaseConfiguration mailTo="john.doe@acme.org;joe.plumber@acme.org">
-    <dimensions/>
+    <dimensions>
+        <dimension tableName="REFERENCE_DATA.DIM_A" selectionTableName="OPERATIONAL_DATA.SELECTION_DIM_A" hierarchyTableName="REFERENCE_DATA.DIM_A_HIEARCHY" parent="PARENT" child="CHILD" sdmxCode="a" code="a" displayNameKey="key"/>
+    </dimensions>
     <flags/>
     <domain code="d" displayNameKey="d">
         <dataSet code="ds1" defaultEmptyRowsVisible="false" sdmxCode="ds1">

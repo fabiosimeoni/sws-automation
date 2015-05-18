@@ -46,7 +46,7 @@ public class Producers {
 		
 		String url = format("jdbc:postgresql://%s:%s/%s",d.host(),d.port(),d.db());
 		
-		log.info("connecting to {}",url);
+		log.info("connecting to {} as '{}'",url,d.user());
 		
 		Connection conn =  DriverManager.getConnection(url,d.user(), d.pwd());
 		
