@@ -1,8 +1,4 @@
 
-{{#if clean}}
-drop table if exists {{table}} cascade;
-{{/if}}
-
 create table if not exists {{table}} (
   code character({{length}}) not null primary key,
   description character varying(255) not null

@@ -1,11 +1,5 @@
 
-{{#if clean}}
-drop schema if exists {{schema}} cascade;
-delete from reference_data.dataset where xml_name='{{schema}}';
-{{/if}}
-
 create schema if not exists {{schema}};
-
 
 -- metadata
 

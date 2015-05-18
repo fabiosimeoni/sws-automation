@@ -41,9 +41,6 @@ public class Database implements Closeable {
 	private final Validator validator;
 	
 	@Setter
-	private boolean clean = false;
-	
-	@Setter
 	private boolean dryrun = false;
 	
 	public Database(@NonNull Connection conn, Validator validator) {
@@ -53,39 +50,30 @@ public class Database implements Closeable {
 		this.jooq = using(conn,POSTGRES);
 	}
 
-	public void createSchemaForEntire(Configuration configuration) {
+	public void createSchemaForEntire(@NonNull Configuration configuration) {
 		
 		if (!validator.valid(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		create(configuration);
+		$createSchemas(configuration);
 	}
 	
-	public void createSchemaFor(Configuration configuration) {
+	public void createSchemaFor(@NonNull Configuration configuration) {
 		
 		if (!validator.validFragment(configuration))
 			throw new IllegalArgumentException("configuration is invalid, will not persist it.");
 		
-		create(configuration);
+		$createSchemas(configuration);
 	}
 	
-	void create(Configuration configuration) {
-		
-		configuration.dimensions().forEach(this::createSchemaFor);
-		
-		configuration.flags().forEach(this::createSchemaFor);
-		
-		configuration.domains().forEach(this::createSchemasFor);
-	}
-
-	public void createSchemaFor(Dimension dim) {
+	public void createSchemaFor(@NonNull Dimension dim) {
 		
 		log.info("storing dimension '{}'",dim.id());
 		
 		List<Object[]> model = new ArrayList<>(asList(
-				 $("clean",clean)
-				,$("table",dim.table())
+				 $("table",dim.table())
 				,$("length",dim.length())
+				,$("selectionTable",dim.selectionTable())
 				,$("hierarchyTable",dim.hierarchyTable())
 				,$("parent",dim.parent())
 				,$("child",dim.child())
@@ -104,13 +92,12 @@ public class Database implements Closeable {
 		
 	}
 	
-	public void createSchemaFor(Flag flag) {
+	public void createSchemaFor(@NonNull Flag flag) {
 		
 		log.info("storing flag '{}'",flag.id());
 		
 		String ddl = instantiate("flag", 
-									 $("clean",clean)
-									,$("table",flag.table())
+									 $("table",flag.table())
 									,$("length",flag.length())
 									);
 
@@ -122,7 +109,7 @@ public class Database implements Closeable {
 		
 	}
 	
-	public void createSchemasFor(Domain domain) {
+	public void createSchemasFor(@NonNull Domain domain) {
 		
 		log.info("storing domain '{}'",domain.id());
 		
@@ -130,13 +117,12 @@ public class Database implements Closeable {
 	}
 	
 	
-	public void createSchemaFor(Dataset dataset) {
+	public void createSchemaFor(@NonNull Dataset dataset) {
 		
 		log.info("storing dataset '{}'",dataset.id());
 		
 		String ddl = instantiate("dataset", 
-								 $("clean",clean) 
-								,$("schema",dataset.schema())
+								 $("schema",dataset.schema())
 								,$("observation",dataset.table())
 								,$("metadata",dataset.metadataTable())
 								,$("metadata_element",dataset.metadataElementTable())
@@ -149,14 +135,13 @@ public class Database implements Closeable {
 								,$("validation",dataset.validationTable())
 								,$("tag_observation",dataset.tagObservationTable())
 								,$("flags",dataset.flags().all())
-								);
+		);
 		
 		log.info("\n\n{}",ddl);
   
 		
 		if (!dryrun)
 			jooq.execute(ddl);
-		
 	}
 	
 	
@@ -172,6 +157,33 @@ public class Database implements Closeable {
 	}
 	
 	//////////////////////////////////////////////////////////////////// helpers
+
+	public void createGroup(@NonNull Group group, @NonNull Dataset dataset) {
+		
+		log.info("creating for dataset '{}'",dataset.id());
+		
+		String ddl = instantiate("group",
+				  $("group",group)
+				 ,$("schema",dataset.schema())
+				 ,$("dimensions",dataset.dimensions().all())
+		);
+		
+		log.info("\n\n{}",ddl);
+  
+		
+		if (!dryrun)
+			jooq.execute(ddl);
+	}
+
+	void $createSchemas(@NonNull Configuration configuration) {
+		
+		configuration.dimensions().forEach(this::createSchemaFor);
+		
+		configuration.flags().forEach(this::createSchemaFor);
+		
+		configuration.domains().forEach(this::createSchemasFor);
+	
+	}
 	
 
 }

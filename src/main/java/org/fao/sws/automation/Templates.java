@@ -21,8 +21,6 @@ public class Templates {
 
 	private String prefix = "/ddl";
 
-	public String dataset = "";
-
 	private final Handlebars bars = new Handlebars(new ClassPathTemplateLoader(prefix, ".sws"));
 
 	public Object[] $(String key,Object value) {

@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import org.fao.sws.automation.Database;
 import org.fao.sws.automation.Deployment;
 import org.fao.sws.automation.FileSystem;
+import org.fao.sws.automation.Group;
 import org.fao.sws.automation.Recipe;
 import org.fao.sws.model.Dataset;
 import org.fao.sws.model.Dimension;
@@ -29,12 +30,18 @@ public class GenerationTest extends Recipe {
 		fs.store(aConfigFragment(),"test");
 	}
 	
-
 	@Test
 	public void create_fragment_schema() {
 		
-		db.clean(true);
-		db.createSchemaFor(aConfigFragment());
+		
+		Configuration fragment = aConfigFragment();
+		
+		db.createSchemaFor(fragment);
+		
+		Group group = new Group("test_users").description("some decription");
+		Dataset ds = fragment.datasets().iterator().next();
+		
+		db.createGroup(group,ds);
 	}
 	
 	@Test
@@ -42,7 +49,6 @@ public class GenerationTest extends Recipe {
 		
 		Dimension dim = dimension("test").length(5);
 		
-		db.clean(true);
 		db.createSchemaFor(dim);
 		
 	}
@@ -52,7 +58,6 @@ public class GenerationTest extends Recipe {
 		
 		Dimension dim = measureDimension("element_test").length(5);
 		
-		db.clean(true);
 		db.createSchemaFor(dim);
 		
 	}
@@ -62,7 +67,6 @@ public class GenerationTest extends Recipe {
 		
 		Flag flag = flag("test").length(5);
 		
-		db.clean(true);
 		db.createSchemaFor(flag);
 		
 	}

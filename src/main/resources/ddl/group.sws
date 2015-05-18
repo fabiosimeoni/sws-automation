@@ -1,0 +1,39 @@
+
+-- create group
+
+insert into operational_data."group" (groupname,description) SELECT '{{group.name}}','{{group.description}}'
+	 where not exists (select 1 from operational_data."group" where groupname='{{group.name}}');
+
+-- set permissions over whole dataset if group has none yet
+   
+DO $$
+DECLARE
+ 
+   datasetId          integer;
+   selectionId        integer;
+   groupId            integer;
+   
+BEGIN
+   
+   select id into datasetId from reference_data.dataset where xml_name = '{{schema}}';
+   select id into groupId from operational_data."group" where groupname = '{{group.name}}';
+   
+   IF exists (select 1 from operational_data.permission as P, operational_data.selection as S 
+                      where P.id=S.id 
+                        and P."group"=groupId
+                        and S.dataset=datasetId) 
+   
+   	THEN RETURN;
+   END IF;
+   
+    insert into operational_data.selection values (default,datasetId,'permissions over entire {{schema}} dataset') returning id into selectionId;
+ 
+	{{#each dimensions}} 
+	   insert into {{target.selectionTable}}(selection, dim) VALUES (selectionId, NULL); 
+	{{/each}} 
+
+   insert into operational_data.permission values (selectionId, groupId, true, true, true, true, true);
+   
+
+ 
+END$$;

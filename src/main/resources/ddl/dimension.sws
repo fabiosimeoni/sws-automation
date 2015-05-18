@@ -1,8 +1,4 @@
 
-{{#if clean}}
-drop table if exists {{table}} cascade;
-{{/if}}
-
 create table if not exists {{table}} (
   id serial not null primary key,
   code character varying({{length}}) unique not null,
@@ -20,6 +16,14 @@ create table if not exists {{table}} (
   {{#if measure}}
   , unit_of_measure integer NOT NULL references REFERENCE_DATA.UNIT_OF_MEASURE(id)
   {{/if}}
+);
+
+-- selection table
+
+create table if not exists {{selectionTable}} (
+  id bigserial not null primary key,
+  selection bigint references operational_data.selection(id),
+  dim integer references {{table}}(id)
 );
 
 
