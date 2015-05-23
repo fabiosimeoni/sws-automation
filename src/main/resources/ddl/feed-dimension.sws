@@ -1,0 +1,11 @@
+
+insert into {{table}} ({{#each cols}}{{#if @index}},{{/if}}{{this}}{{/each}}) values
+										{{#each data}}{{#if @index}},{{/if}}
+										({{#each}}{{#if @index}},{{/if}}{{#if this}}'{{this}}'{{else}}NULL{{/if}}{{/each}}){{/each}};
+
+
+insert into {{hierarchy_table}} ({{parent}},{{child}}) values 
+								{{#each hierarchy }}{{#if @index}},{{/if}}((select id from {{table}} where code='{{this.[0]}}'),(select id from {{table}} where code='{{this.[1]}}'))
+								{{/each }}
+
+

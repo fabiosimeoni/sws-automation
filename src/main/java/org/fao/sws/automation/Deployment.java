@@ -30,5 +30,5 @@ public @interface Deployment {
 	String pwd() default "sws";
 	
 	@Nonbinding
-	String config() default "";
+	String config() default "src/test/resources";
 }

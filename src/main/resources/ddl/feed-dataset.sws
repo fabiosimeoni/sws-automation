@@ -1,0 +1,13 @@
+
+DO $$
+DECLARE
+  coord_id  integer;
+BEGIN
+-- 13 is the id of the unknown user
+ 
+{{#each data}}
+insert into {{coordinate_table}} ({{#each cols}}{{#if @index}},{{/if}}{{this}}{{/each}}) values ({{#each coords}}{{#if @index}},{{/if}}(select id from {{dim_table}} where code='{{dim_code}}'){{/each}}) returning id into coord_id;
+insert into {{observation_table}} (observation_coordinates,version,value,created_by) values (coord_id,1,{{value}},13);
+{{/each}}
+
+END$$;

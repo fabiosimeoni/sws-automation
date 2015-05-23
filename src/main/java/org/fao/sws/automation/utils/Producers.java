@@ -57,9 +57,15 @@ public class Producers {
 	//cute trick: 
 	// we want to specify @Deployment in injection points only to override its defaults, otherwise we'd rather omit it. 
 	// we achieve this by getting it injected here and then re-producing it without the qualifier
+	
 	@Produces
 	Database default_database(@Deployment Database db) {
 		return db;
+	}
+	
+	@Produces
+	FileSystem default_filesystem(@Deployment FileSystem fs) {
+		return fs;	
 	}
 	
 	
