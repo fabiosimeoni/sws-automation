@@ -42,7 +42,12 @@ public class FileSystem {
 	@SneakyThrows
 	public void store(Configuration fragment, String name) {
 		
-		Path destination = locator.location().resolve(name+".xml");
+		store(fragment, locator.location().resolve(name+".xml"));
+		
+	}
+	
+	@SneakyThrows
+	public void store(Configuration fragment, Path destination) {
 		
 		createDirectories(destination.getParent());
 		
