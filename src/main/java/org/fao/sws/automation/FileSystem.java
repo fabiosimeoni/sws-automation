@@ -105,10 +105,12 @@ public class FileSystem {
 		
 		log.info("persisting labels @ {}", locator.location());
 		
-		props.store(err,null);
+		String comments = fragment.domains().all().isEmpty() ? null :fragment.domains().iterator().next().label();
+		
+		props.store(err,comments);
 				
 		@Cleanup OutputStream out = dryrun? err : new FileOutputStream(path.toFile());
 		
-		props.store(out,null);
+		props.store(out,comments);
 	}
 }
