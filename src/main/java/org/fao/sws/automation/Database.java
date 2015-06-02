@@ -282,7 +282,7 @@ public class Database implements Closeable {
 	
 	public void createGroup(@NonNull Group group, @NonNull Dataset dataset) {
 		
-		log.info("creating for dataset '{}'",dataset.id());
+		log.info("creating group for dataset '{}'",dataset.id());
 		
 		String ddl = instantiate("group",
 				  $("group",group)

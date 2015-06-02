@@ -72,9 +72,6 @@ create index on {{observation_coordinate}} USING btree (approved_observation);
  
  
  
- 
- 
- 
 -- session metadata
 
 create table if not exists {{session_metadata}} ( 
@@ -182,14 +179,12 @@ create table if not exists {{validation}} (
 );
 
 
- 
-
- 
- 
- 
 {{#each dimensions}}
 alter table only {{observation_coordinate}}
     add foreign key ({{joinColumn}}) references {{target.table}}(id); 
+    
+alter table only {{observation_coordinate}} 
+ add foreign key (approved_observation) references observation(id); 
     
 alter table only {{session_observation}}
     add foreign key ({{joinColumn}}) references {{target.table}}(id); 
