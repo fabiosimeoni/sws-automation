@@ -184,7 +184,7 @@ alter table only {{observation_coordinate}}
     add foreign key ({{joinColumn}}) references {{target.table}}(id); 
     
 alter table only {{observation_coordinate}} 
- add foreign key (approved_observation) references observation(id); 
+ add foreign key (approved_observation) references {{observation}}(id); 
     
 alter table only {{session_observation}}
     add foreign key ({{joinColumn}}) references {{target.table}}(id); 
